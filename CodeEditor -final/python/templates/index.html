@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Code Editor</title>
+</head>
+<body>
+    <textarea id="python-editor" rows="10" cols="50"></textarea>
+    <button onclick="executeCode()">Execute</button>
+    <div id="output"></div>
+
+    <script>
+        function executeCode() {
+            var code = document.getElementById("python-editor").value;
+            fetch('/execute', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ code: code })
+            })
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById("output").textContent = data;
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Code Editor</title>
+</head>
+<body>
+    <textarea id="python-editor" rows="10" cols="50"></textarea>
+    <button onclick="getQuestions()">Get Questions</button>
+    <div id="questions"></div>
+    <input type="text" id="answer" placeholder="Your answer">
+    <button onclick="submitAnswer()">Submit Answer</button>
+    <div id="message"></div>
+
+    <script>
+        function getQuestions() {
+            fetch('/get_questions')
+            .then(response => response.json())
+            .then(data => {
+                displayQuestions(data.questions);
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        function displayQuestions(questions) {
+            var questionsDiv = document.getElementById("questions");
+            questionsDiv.innerHTML = ""; // Clear previous questions
+
+            questions.forEach(function(question, index) {
+                var questionText = "Question " + (index + 1) + ": " + question.text;
+                var questionElement = document.createElement("div");
+                questionElement.textContent = questionText;
+                questionsDiv.appendChild(questionElement);
+                questionElement.dataset.questionId = question.id;
+            });
+        }
+
+        function submitAnswer() {
+            var questionId = document.querySelector("#questions div").dataset.questionId;
+            var answer = document.getElementById("answer").value;
+            fetch('/submit_answer', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ question_id: questionId, answer: answer })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("message").textContent = data.message;
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    </script>
+</body>
+</html>

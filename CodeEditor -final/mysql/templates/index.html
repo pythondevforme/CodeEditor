@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MySQL Code Editor</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.0/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.0/mode/sql/sql.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.0/codemirror.min.css">
+</head>
+<body>
+    <textarea id="sql-editor" rows="10" cols="50"></textarea>
+    <button id="execute-btn">Execute</button>
+    <div id="query-result"></div>
+
+    <script>
+        var editor = CodeMirror.fromTextArea(document.getElementById("sql-editor"), {
+            lineNumbers: true,
+            mode: "text/x-sql",
+            theme: "default"
+        });
+
+        document.getElementById("execute-btn").addEventListener("click", function() {
+            var query = editor.getValue();
+            executeQuery(query);
+        });
+
+        function executeQuery(query) {
+            fetch('/execute', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ query: query })
+            })
+            .then(response => response.json())
+            .then(data => {
+                displayResult(data);
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        function displayResult(data) {
+            var resultDiv = document.getElementById("query-result");
+            resultDiv.innerHTML = ""; // Clear previous result
+            if ('result' in data) {
+                if (data.result && data.result.length > 0) {
+                    var table = document.createElement("table");
+                    var headerRow = table.insertRow();
+                    for (var col in data.result[0]) {
+                        var headerCell = headerRow.insertCell();
+                        headerCell.textContent = col;
+                    }
+                    data.result.forEach(row => {
+                        var newRow = table.insertRow();
+                        for (var col in row) {
+                            var cell = newRow.insertCell();
+                            cell.textContent = row[col];
+                        }
+                    });
+                    resultDiv.appendChild(table);
+                } else {
+                    resultDiv.textContent = "No results";
+                }
+            } else if ('error' in data) {
+                resultDiv.textContent = "Error: " + data.error;
+            }
+        }
+    </script>
+</body>
+</html>
